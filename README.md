@@ -19,6 +19,7 @@ This Python program creates a full-screen blue window that displays:
 ## Files in This Project
 
 - `kiosk.py` - The main Python program that creates the kiosk display
+- `start_kiosk.sh` - Shell wrapper script with delay and error logging
 - `setup_autostart.sh` - Automatic setup script for Raspberry Pi Zero 2W autostart
 - `README.md` - This file!
 
@@ -144,31 +145,51 @@ Press `ESC` or `Alt+F4` to close the full-screen window.
 
 ### Step 3: Set Up Auto-Start
 
+**Note**: For better reliability, we recommend using the automatic setup script (see Quick Start above). If you need to do it manually, follow these steps:
+
 1. Create the autostart directory:
    ```bash
    mkdir -p ~/.config/lxsession/LXDE-pi
    ```
 
-2. Edit the autostart file:
+2. Create the shell wrapper script (recommended for stability):
+   ```bash
+   nano ~/digital-kiosk/start_kiosk.sh
+   ```
+
+   Add this content:
+   ```bash
+   #!/bin/bash
+   sleep 10  # Wait for desktop to fully load
+   python3 /home/pi/digital-kiosk/kiosk.py
+   ```
+
+3. Make it executable:
+   ```bash
+   chmod +x ~/digital-kiosk/start_kiosk.sh
+   ```
+
+4. Edit the autostart file:
    ```bash
    nano ~/.config/lxsession/LXDE-pi/autostart
    ```
 
-3. Add these lines at the end:
+5. Add this line at the end:
    ```
-   @lxpanel --profile LXDE-pi
-   @python3 /home/pi/kiosk.py
+   @/home/pi/digital-kiosk/start_kiosk.sh
    ```
 
-4. Save and exit:
+6. Save and exit:
    - Press `Ctrl+X`
    - Press `Y` (for "yes")
    - Press `Enter`
 
-5. Reboot:
+7. Reboot:
    ```bash
    sudo reboot
    ```
+
+**Why use a shell wrapper?** The 10-second delay ensures the desktop environment is fully loaded before the kiosk starts, which prevents many common autostart issues.
 
 ## 🚪 Exiting the Kiosk and Navigating Away
 
@@ -267,9 +288,16 @@ To make the kiosk start automatically again, just remove the `#` symbol:
 ## Troubleshooting
 
 ### The kiosk doesn't start automatically
-- Make sure the file path is correct: `/home/pi/kiosk.py`
-- Check that the autostart file has the correct lines
-- Try running it manually first to see if there are errors: `python3 /home/pi/kiosk.py`
+- **Check the startup log**: `cat ~/digital-kiosk/kiosk_startup.log`
+  - This log shows what happened when the system tried to start the kiosk
+  - Look for error messages about missing files or Python errors
+- **Check X session errors**: `cat ~/.xsession-errors | tail -n 50`
+  - This shows errors from the graphical desktop startup
+- **Verify the file paths**: Make sure `kiosk.py` and `start_kiosk.sh` are in the correct location
+- **Try running manually first**: `python3 /home/pi/digital-kiosk/kiosk.py`
+  - If this works but autostart doesn't, the issue is likely timing-related
+- **Increase the delay**: Edit `start_kiosk.sh` and change `sleep 10` to `sleep 15` or `sleep 20`
+  - Some Raspberry Pis take longer to fully load the desktop environment
 
 ### I can't exit the full-screen window
 - Try pressing `Alt+F4` first
