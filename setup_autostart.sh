@@ -64,30 +64,36 @@ fi
 echo ""
 
 echo -e "${BLUE}Step 6: Creating autostart directory...${NC}"
-AUTOSTART_DIR="$HOME/.config/lxsession/LXDE-pi"
+# Use modern .desktop file method (works with all desktop environments)
+AUTOSTART_DIR="$HOME/.config/autostart"
 mkdir -p "$AUTOSTART_DIR"
 echo -e "${GREEN}✓ Directory created: $AUTOSTART_DIR${NC}"
 echo ""
 
-echo -e "${BLUE}Step 7: Configuring autostart file...${NC}"
-AUTOSTART_FILE="$AUTOSTART_DIR/autostart"
+echo -e "${BLUE}Step 7: Creating .desktop autostart file...${NC}"
+DESKTOP_FILE="$AUTOSTART_DIR/kiosk.desktop"
 
-# Backup existing autostart file if it exists
-if [ -f "$AUTOSTART_FILE" ]; then
-    echo "Backing up existing autostart file..."
-    cp "$AUTOSTART_FILE" "$AUTOSTART_FILE.backup.$(date +%Y%m%d_%H%M%S)"
+# Backup existing desktop file if it exists
+if [ -f "$DESKTOP_FILE" ]; then
+    echo "Backing up existing kiosk.desktop file..."
+    cp "$DESKTOP_FILE" "$DESKTOP_FILE.backup.$(date +%Y%m%d_%H%M%S)"
     echo -e "${GREEN}✓ Backup created${NC}"
 fi
 
-# Create the autostart file with the wrapper script
-cat > "$AUTOSTART_FILE" << EOF
-@lxpanel --profile LXDE-pi
-@pcmanfm --desktop --profile LXDE-pi
-@xscreensaver -no-splash
-@$STARTER_SCRIPT
+# Create the .desktop file
+cat > "$DESKTOP_FILE" << EOF
+[Desktop Entry]
+Type=Application
+Name=Digital Kiosk
+Exec=$STARTER_SCRIPT
+Comment=Starts the Python kiosk application with a 10s delay
+Terminal=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
 EOF
 
-echo -e "${GREEN}✓ Autostart file configured to use start_kiosk.sh${NC}"
+chmod +x "$DESKTOP_FILE"
+echo -e "${GREEN}✓ Desktop autostart file configured${NC}"
 echo ""
 
 echo -e "${BLUE}Step 8: Creating log directory for troubleshooting...${NC}"
@@ -114,13 +120,12 @@ echo "- Press Alt+F4 to close the window"
 echo "- Or switch to terminal (Ctrl+Alt+F1) and run: pkill python3"
 echo ""
 echo -e "${YELLOW}To disable auto-start:${NC}"
-echo "Edit: $AUTOSTART_FILE"
-echo "Remove the line: @$STARTER_SCRIPT"
+echo "rm ~/.config/autostart/kiosk.desktop"
 echo ""
 echo -e "${YELLOW}Troubleshooting:${NC}"
 echo "- View startup logs: cat $SCRIPT_DIR/kiosk_startup.log"
 echo "- View X session errors: cat ~/.xsession-errors | tail -n 50"
-echo "- Backup location: $AUTOSTART_FILE.backup.*"
+echo "- Check autostart file: cat ~/.config/autostart/kiosk.desktop"
 echo ""
 echo "Thank you for using Pi Academy Digital Kiosk! 🚀"
 echo ""

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Digital Kiosk
+Exec=/home/pi/digital-kiosk/start_kiosk.sh
+Comment=Starts the Python kiosk application with a 10s delay
+Terminal=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
